@@ -6,12 +6,6 @@ pipeline {
   }
 
   stages {
-    stage('Clonar repositorio') {
-      steps {
-        git 'https://github.com/wilmerllerenaucc/mern.git'
-      }
-    }
-
     stage('Construir imagen Docker local') {
       steps {
         script {
@@ -23,7 +17,6 @@ pipeline {
     stage('Desplegar en Minikube') {
       steps {
         script {
-          // Opcional: asegúrate de que Jenkins tenga el contexto minikube activo
           sh 'kubectl apply -f secret.yaml'
           sh 'kubectl apply -f deployment.yaml'
           sh 'kubectl apply -f service.yaml'
