@@ -8,15 +8,15 @@ pipeline {
   stages {
     stage('Construir imagen Docker local') {
       steps {
-        sh 'docker build -t mern-crud-app .'
+        bat 'docker build -t mern-crud-app .'
       }
     }
 
     stage('Desplegar en Minikube') {
       steps {
-        sh 'kubectl apply -f secret.yaml'
-        sh 'kubectl apply -f deployment.yaml'
-        sh 'kubectl apply -f service.yaml'
+        bat 'kubectl apply -f secret.yaml'
+        bat 'kubectl apply -f deployment.yaml'
+        bat 'kubectl apply -f service.yaml'
       }
     }
   }
