@@ -14,14 +14,25 @@ spec:
     spec:
       containers:
         - name: mern-app
-          image: wilmerllerenaucc/mern-crud-app:latest
+          image: mern-crud-app:latest  # Imagen local en Minikube
           ports:
             - containerPort: 4000
           env:
             - name: MONGO_URI
-              valueFrom:
-                secretKeyRef:
-                  name: mongo-secret
-                  key: uri
+              value: "mongodb+srv://gycs:lslmjByYIubce615@cluster0.rasxaou.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
             - name: NODE_ENV
               value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mern-service
+spec:
+  type: NodePort
+  selector:
+    app: mern
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
+      nodePort: 30080  # Puedes acceder en http://localhost:30080
