@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = "wilmerllerenaucc/mern-crud-app"
+    IMAGE_NAME = "mern-crud-app"
   }
 
   stages {
@@ -12,7 +12,7 @@ pipeline {
       }
     }
 
-    stage('Construir imagen Docker') {
+    stage('Construir imagen Docker local') {
       steps {
         script {
           dockerImage = docker.build("${IMAGE_NAME}:latest")
@@ -20,39 +20,24 @@ pipeline {
       }
     }
 
-    stage('Ejecutar pruebas (opcional)') {
+    stage('Desplegar en Minikube') {
       steps {
-        echo 'No hay pruebas configuradas aún.'
-        // Si las agregas, podrías hacer:
-        // sh 'npm install && npm test'
-      }
-    }
-
-    stage('Publicar en DockerHub') {
-      steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'dockerhub-creds', 
-          usernameVariable: 'USER', 
-          passwordVariable: 'PASS'
-        )]) {
-          script {
-            sh 'echo $PASS | docker login -u $USER --password-stdin'
-            dockerImage.push("latest")
-          }
+        script {
+          // Opcional: asegúrate de que Jenkins tenga el contexto minikube activo
+          sh 'kubectl apply -f secret.yaml'
+          sh 'kubectl apply -f deployment.yaml'
+          sh 'kubectl apply -f service.yaml'
         }
-      }
-    }
-
-    stage('Fin') {
-      steps {
-        echo '✅ Proceso completado. Imagen lista en DockerHub.'
       }
     }
   }
 
   post {
+    success {
+      echo '✅ Pipeline completado. Despliegue en Minikube exitoso.'
+    }
     failure {
-      echo '❌ Error en alguna etapa del pipeline.'
+      echo '❌ Hubo un error en el pipeline.'
     }
   }
 }
