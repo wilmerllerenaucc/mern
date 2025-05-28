@@ -2,30 +2,33 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HOST = 'tcp://127.0.0.1:2375' // Por si usas Docker remoto con Minikube
+        // Nombre de la imagen
         IMAGE_NAME = 'mern-crud-app'
     }
 
     stages {
         stage('Clonar repositorio') {
             steps {
-                git url: 'https://github.com/wilmerllerenaucc/mern.git', branch: 'main'
+                git branch: 'main', url: 'https://github.com/wilmerllerenaucc/mern.git'
             }
         }
 
-        stage('Construir imagen Docker local') {
+        stage('Construir imagen Docker local en Minikube') {
             steps {
-                bat 'docker build -t %IMAGE_NAME% .'
+                bat '''
+                @echo off
+                rem Configurar entorno Docker para usar el daemon de Minikube
+                for /f "delims=" %%i in ('minikube docker-env --shell=cmd') do call %%i
+                docker build -t %IMAGE_NAME% .
+                '''
             }
         }
 
-        stage('Desplegar en Minikube') {
+        stage('Desplegar en Minikube (opcional)') {
             steps {
-                bat 'kubectl apply -f secret.yaml'
-                bat 'kubectl apply -f mongo-deployment.yaml'
-                bat 'kubectl apply -f mongo-service.yaml'
-                bat 'kubectl apply -f app-deployment.yaml'
-                bat 'kubectl apply -f app-service.yaml'
+                echo 'Aquí podrías aplicar manifests de Kubernetes con kubectl si lo deseas.'
+                // ejemplo:
+                // bat 'kubectl apply -f k8s/deployment.yaml'
             }
         }
     }
@@ -35,7 +38,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Despliegue completado exitosamente.'
+            echo '✅ Pipeline completado con éxito.'
         }
     }
 }
