@@ -1,32 +1,41 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    IMAGE_NAME = "mern-crud-app"
-  }
-
-  stages {
-    stage('Construir imagen Docker local') {
-      steps {
-        bat 'docker build -t mern-crud-app .'
-      }
+    environment {
+        DOCKER_HOST = 'tcp://127.0.0.1:2375' // Por si usas Docker remoto con Minikube
+        IMAGE_NAME = 'mern-crud-app'
     }
 
-    stage('Desplegar en Minikube') {
-      steps {
-        bat 'kubectl apply -f secret.yaml'
-        bat 'kubectl apply -f deployment.yaml'
-        bat 'kubectl apply -f service.yaml'
-      }
-    }
-  }
+    stages {
+        stage('Clonar repositorio') {
+            steps {
+                git url: 'https://github.com/wilmerllerenaucc/mern.git', branch: 'main'
+            }
+        }
 
-  post {
-    success {
-      echo '✅ Pipeline completado con éxito.'
+        stage('Construir imagen Docker local') {
+            steps {
+                bat 'docker build -t %IMAGE_NAME% .'
+            }
+        }
+
+        stage('Desplegar en Minikube') {
+            steps {
+                bat 'kubectl apply -f secret.yaml'
+                bat 'kubectl apply -f mongo-deployment.yaml'
+                bat 'kubectl apply -f mongo-service.yaml'
+                bat 'kubectl apply -f app-deployment.yaml'
+                bat 'kubectl apply -f app-service.yaml'
+            }
+        }
     }
-    failure {
-      echo '❌ Hubo un error en el pipeline.'
+
+    post {
+        failure {
+            echo '❌ Hubo un error en el pipeline.'
+        }
+        success {
+            echo '✅ Despliegue completado exitosamente.'
+        }
     }
-  }
 }
