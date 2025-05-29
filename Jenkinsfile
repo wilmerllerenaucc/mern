@@ -12,10 +12,9 @@ pipeline {
             }
         }
 
-        stage('Ejecutar tests con Jest') {
+        stage('Instalar dependencias y ejecutar tests') {
             steps {
                 bat '''
-                cd backend
                 call npm install
                 call npm test
                 '''
@@ -50,7 +49,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Pipeline completado con éxito. Tests y despliegue aplicados.'
+            echo '✅ Pipeline completado con éxito. Tests y despliegue realizados.'
         }
     }
 }
