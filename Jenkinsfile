@@ -15,7 +15,8 @@ pipeline {
         stage('Construir imagen Docker local en Minikube') {
             steps {
                 powershell '''
-                minikube -p minikube docker-env --shell powershell | Invoke-Expression
+                $envScript = minikube -p minikube docker-env --shell powershell
+                Invoke-Expression $envScript
                 docker build -t $env:IMAGE_NAME .
                 '''
             }
@@ -24,8 +25,10 @@ pipeline {
         stage('Desplegar en Minikube') {
             steps {
                 powershell '''
-                minikube -p minikube docker-env --shell powershell | Invoke-Expression
-                $env:KUBECONFIG="$env:USERPROFILE\\.kube\\config"
+                $envScript = minikube -p minikube docker-env --shell powershell
+                Invoke-Expression $envScript
+
+                $env:KUBECONFIG = "$env:USERPROFILE\\.kube\\config"
 
                 kubectl apply -f secret.yaml --validate=false
                 kubectl apply -f deployment.yaml --validate=false
