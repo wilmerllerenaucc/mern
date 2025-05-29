@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'mern-crud-app'
+        KUBECONFIG = 'C:\\Windows\\System32\\config\\systemprofile\\.kube\\config' // Ruta del usuario Jenkins
     }
 
     stages {
@@ -12,24 +13,19 @@ pipeline {
             }
         }
 
-        stage('Construir imagen Docker local en Minikube') {
+        stage('Construir imagen en Minikube') {
             steps {
-                powershell '''
-                $envScript = minikube -p minikube docker-env --shell powershell
-                Invoke-Expression $envScript
-                docker build -t $env:IMAGE_NAME .
+                bat '''
+                call minikube -p minikube docker-env --shell=cmd > minikube_env.bat
+                call minikube_env.bat
+                docker build -t %IMAGE_NAME% .
                 '''
             }
         }
 
         stage('Desplegar en Minikube') {
             steps {
-                powershell '''
-                $envScript = minikube -p minikube docker-env --shell powershell
-                Invoke-Expression $envScript
-
-                $env:KUBECONFIG = "$env:USERPROFILE\\.kube\\config"
-
+                bat '''
                 kubectl apply -f secret.yaml --validate=false
                 kubectl apply -f deployment.yaml --validate=false
                 kubectl apply -f service.yaml --validate=false
@@ -43,7 +39,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Pipeline completado con éxito. Imagen construida y manifiestos desplegados.'
+            echo '✅ Despliegue exitoso en Minikube.'
         }
     }
 }
