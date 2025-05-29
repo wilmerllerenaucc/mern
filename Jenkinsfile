@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Nombre de la imagen
         IMAGE_NAME = 'mern-crud-app'
     }
 
@@ -10,6 +9,16 @@ pipeline {
         stage('Clonar repositorio') {
             steps {
                 git branch: 'main', url: 'https://github.com/wilmerllerenaucc/mern.git'
+            }
+        }
+
+        stage('Ejecutar tests con Jest') {
+            steps {
+                bat '''
+                cd backend
+                call npm install
+                call npm test
+                '''
             }
         }
 
@@ -24,11 +33,14 @@ pipeline {
             }
         }
 
-        stage('Desplegar en Minikube (opcional)') {
+        stage('Desplegar en Minikube') {
             steps {
-                echo 'Aquí podrías aplicar manifests de Kubernetes con kubectl si lo deseas.'
-                // ejemplo:
-                // bat 'kubectl apply -f k8s/deployment.yaml'
+                bat '''
+                @echo off
+                kubectl apply -f secret.yaml
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
+                '''
             }
         }
     }
@@ -38,7 +50,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Pipeline completado con éxito.'
+            echo '✅ Pipeline completado con éxito. Tests y despliegue aplicados.'
         }
     }
 }
