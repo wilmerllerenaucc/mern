@@ -14,22 +14,22 @@ pipeline {
 
         stage('Construir imagen Docker local en Minikube') {
             steps {
-                bat '''
-                @echo off
-                rem Configurar entorno Docker para usar el daemon de Minikube
-                for /f "delims=" %%i in ('minikube docker-env --shell=cmd') do call %%i
-                docker build -t %IMAGE_NAME% .
+                powershell '''
+                minikube -p minikube docker-env --shell powershell | Invoke-Expression
+                docker build -t $env:IMAGE_NAME .
                 '''
             }
         }
 
         stage('Desplegar en Minikube') {
             steps {
-                bat '''
-                @echo off
-                kubectl apply -f secret.yaml
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
+                powershell '''
+                minikube -p minikube docker-env --shell powershell | Invoke-Expression
+                $env:KUBECONFIG="$env:USERPROFILE\\.kube\\config"
+
+                kubectl apply -f secret.yaml --validate=false
+                kubectl apply -f deployment.yaml --validate=false
+                kubectl apply -f service.yaml --validate=false
                 '''
             }
         }
@@ -40,7 +40,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Pipeline completado con éxito. Manifiestos desplegados en Minikube.'
+            echo '✅ Pipeline completado con éxito. Imagen construida y manifiestos desplegados.'
         }
     }
 }
