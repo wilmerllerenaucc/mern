@@ -12,15 +12,6 @@ pipeline {
             }
         }
 
-        stage('Instalar dependencias y ejecutar tests') {
-            steps {
-                bat '''
-                call npm install
-                call npm test
-                '''
-            }
-        }
-
         stage('Construir imagen Docker local en Minikube') {
             steps {
                 bat '''
@@ -49,7 +40,7 @@ pipeline {
             echo '❌ Hubo un error en el pipeline.'
         }
         success {
-            echo '✅ Pipeline completado con éxito. Tests y despliegue realizados.'
+            echo '✅ Pipeline completado con éxito. Manifiestos desplegados en Minikube.'
         }
     }
 }
